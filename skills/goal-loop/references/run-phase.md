@@ -136,7 +136,7 @@ a comment changed — use judgment about what is actually at risk.
 If Pass 4 finds a new issue, the convergence passes introduced a regression. Do not
 declare done. Return to the fix step, resolve it, and run the convergence passes again.
 
-If Pass 4 is clean: **stop.**
+If Pass 4 is clean, all three Stop Condition requirements are met — conditions 1 and 2 were verified in Step 1, condition 3 is now verified. Declare done and report.
 
 ---
 
