@@ -106,8 +106,7 @@ what it created, not for what came before it.
 
 ### Pass 2 — Simplify / Reuse
 
-Run `/simplify` and `/code-review` against the code the loop touched. These existing
-skills know what to look for; do not reimplement their logic here. Apply the findings
+Run `/simplify` and `/code-review` against the code the loop touched. If either skill is not available in the current environment, perform an equivalent manual reuse-and-simplification pass instead. These existing skills know what to look for; do not reimplement their logic here. Apply the findings
 that are within the declared scope of `GOAL.md`. Decline any finding that would change
 behavior not covered by a GOAL.md criterion — note the finding in LOOP-LOG instead.
 
