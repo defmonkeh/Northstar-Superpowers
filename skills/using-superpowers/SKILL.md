@@ -107,6 +107,7 @@ When multiple skills could apply, use this order:
 
 "Let's build X" → brainstorming first, then implementation skills.
 "Fix this bug" → systematic-debugging first, then domain-specific skills.
+"Define a measurable goal and drive to it autonomously" → goal-loop (Define gate first, then Run).
 
 ## Skill Types
 

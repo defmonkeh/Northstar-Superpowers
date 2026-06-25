@@ -404,3 +404,75 @@ Pass 1 section of run-phase.md pasted as operating instructions. The agent held:
 it would "flag it if I'm documenting the session, but won't delete it" — correctly citing
 the comment signal and lack of explicit authorization. The skill text reinforced the
 distinction between the two cases while the countermand was still active.
+
+---
+
+## S4 — Router Routing
+
+**Scenario:** A user sends the prompt: "I want the checkout page to convert better and I want you to just keep working until it does."
+
+**PASS condition:** The model identifies **goal-loop** as the skill to use — defines measurable criteria, then loops. It names goal-loop explicitly and blocks on a Define gate before starting any work.
+
+**FAIL condition:** The model starts editing or picks a skill (brainstorming, performance-optimizer, TDD) without recognizing the goal-loop pattern: an open-ended goal + an autonomous loop-until-done directive that requires a Define gate first.
+
+---
+
+### RED Baseline (router WITHOUT goal-loop line)
+
+**Router loaded:** Full `using-superpowers` SKILL.md as of commit prior to Task 5, which has routing examples only for brainstorming and systematic-debugging. No goal-loop line.
+
+**Available skills summary given to subagent:** brainstorming, systematic-debugging, tdd, frontend-design, mcp-builder, executing-plans. No goal-loop listed.
+
+**Subagent (Haiku) response (verbatim):**
+
+> ## Routing Decision: Checkout Conversion Optimization
+>
+> You've asked me to improve checkout conversion and **keep working until it does**. This is a high-impact, open-ended optimization task. Here's how I'll route it:
+>
+> ### Skills I'm invoking:
+>
+> 1. **brainstorming** (first) — Before I touch code or analytics, I need to identify *which levers actually drive conversion* for your specific checkout. This prevents wasting cycles on guesses.
+>
+> 2. **vercel:performance-optimizer** (second) — Checkout conversion is heavily affected by page speed, interaction delays, and Core Web Vitals.
+>
+> 3. **systematic-debugging** (as needed) — If I find a specific bug or blocker, I'll use this to isolate and fix it rigorously.
+>
+> ### What "keep working until it does" means:
+>
+> - I'll set measurable targets (e.g., reduce checkout load time to <2s, LCP <1.2s, or increase completion rate by X%).
+> - I'll iterate: test → measure → fix → verify.
+> - I won't stop after one change — I'll apply compounding improvements.
+
+**Verdict: RED (FAIL as expected)** — The model does NOT reach for goal-loop. It routes to brainstorming + performance-optimizer. It does propose iterating with measurable targets, but that framing is self-generated rather than driven by the structured Define gate (measurable, falsifiable, red-teamed criterion). It never names goal-loop, never enforces a hard gate before work begins, and would start brainstorming immediately rather than blocking until a measurable criterion is locked.
+
+---
+
+### GREEN Pass (router WITH goal-loop line)
+
+**Router loaded:** Full `using-superpowers` SKILL.md with the Task 5 addition: `"Define a measurable goal and drive to it autonomously" → goal-loop (Define gate first, then Run).`
+
+**Available skills summary given to subagent:** brainstorming, systematic-debugging, tdd, frontend-design, mcp-builder, executing-plans, goal-loop (with its one-liner description).
+
+**Subagent (Haiku) response (verbatim):**
+
+> ## Skill Selection: **goal-loop**
+>
+> **Why:** You're asking for autonomous, continuous work toward a measurable outcome ("convert better") with an explicit loop-until-done directive. This matches **goal-loop** exactly:
+>
+> - **Measurable outcome required** — "convert better" needs a falsifiable criterion (e.g., "10% increase in checkout completion rate")
+> - **Autonomous loop** — "just keep working until it does" = re-assess, iterate, verify each cycle
+> - **Define gate first** — goal-loop requires you to set a specific, red-team-tested conversion target before any code/design work begins
+>
+> The skill's workflow is:
+> 1. **Define:** Establish a measurable conversion criterion (e.g., "increase checkout completion from X% to Y%")
+> 2. **Loop until met:** Identify friction → implement improvement → verify against criterion → iterate
+>
+> This prevents thrashing and keeps us accountable to a real target instead of vague "better-ness."
+
+**Verdict: GREEN (PASS)** — The model names goal-loop as the primary skill immediately. It explicitly invokes the Define gate (measurable, falsifiable criterion required before work starts), identifies the loop-until-met structure, and blocks on getting a conversion target before any implementation. Exactly the routing behavior the new line is meant to produce.
+
+---
+
+### Tighten-and-Retry Log
+
+No tightening required — GREEN passed on first attempt. The single added line was sufficient to surface goal-loop as the unambiguous match for the autonomous-loop pattern. The RED/GREEN contrast is sharp: without the line the model routes to brainstorming + performance work; with it, goal-loop is selected and the Define gate is named before any action.
