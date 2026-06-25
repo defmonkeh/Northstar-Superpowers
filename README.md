@@ -1,7 +1,8 @@
-# Superpowers
+# Northstar Superpowers
 
-Superpowers is a complete software development methodology for your coding agents, built on top of a set of composable skills and some initial instructions that make sure your agent uses them.
+Forked from [obra/superpowers](https://github.com/obra/superpowers) (MIT).
 
+Northstar Superpowers extends the upstream skills library with `goal-loop`: define an airtight goal, then loop autonomously until it's met and nothing is provably broken. You specify what "done" means — a passing test suite, a green CI run, a verified screenshot — and the agent keeps iterating until it can prove the goal is satisfied, then stops.
 
 ## We're Hiring!
 
