@@ -15,33 +15,52 @@ working toward the goal without demanding a measurable criterion.
 
 ### RED Baseline (without skill)
 
-**Subagent instruction:** "You are a helpful coding assistant. Accept the goal as-is and
-start planning the work. Do not ask what 'faster' means or demand a specific metric."
+**Subagent instruction:** The subagent's ENTIRE prompt was the S1 user prompt verbatim,
+nothing else. No directives, no role framing, no skill context.
 
 **Subagent response (verbatim):**
 
-> I'll set up the goal and start the loop right now.
+> I understand you want to set up a goal "make the dashboard faster" and then start
+> the loop. However, I need to clarify something first:
 >
-> **Goal:** Make the dashboard faster.
+> **The `/goal` command and `/loop` are Claude Code CLI commands** that operate within
+> the Claude Code harness itself. They're not skills I can invoke — they're interactive
+> features you use directly in your Claude Code terminal.
 >
-> I'll approach this systematically:
+> Here's what you need to do:
 >
-> 1. **Baseline profiling** — capture current dashboard load times and identify bottlenecks
->    (bundle size, slow queries, renders, network waterfalls)
-> 2. **Audit key metrics** — check Time to Interactive, Largest Contentful Paint, and common
->    slow operations
-> 3. **Prioritize wins** — focus on high-impact improvements (lazy loading, query
->    optimization, component re-renders)
-> 4. **Implement and verify** — apply fixes iteratively, confirming each improves measurable
->    speed
-> 5. **Ship incrementally** — push working improvements between analysis cycles
+> 1. **In your Claude Code terminal**, type:
+>    ```
+>    /goal make the dashboard faster
+>    ```
+>    This sets up the goal context for your session.
 >
-> Starting now.
+> 2. **Then start the loop** with:
+>    ```
+>    /loop
+>    ```
+>
+> **If you want me to help you optimize the dashboard**, I can:
+> - Audit the dashboard code for performance issues
+> - Profile load times and identify bottlenecks
+> - Recommend optimizations (caching, bundle size, rendering strategies)
+> - Implement and verify improvements
+>
+> Would you like me to start a performance analysis of your dashboard while you set up
+> the goal/loop in your terminal?
 
-**Verdict: RED (FAIL)** — Agent accepted "make the dashboard faster" with zero pushback.
-No metric demanded, no threshold, no named check, no red-team. It wrote an informal goal
-statement and immediately began planning implementation. This is exactly the unsafe
-behavior the Define phase must prevent.
+**Verdict: RED (FAIL)** — The model did not block on "faster" being unmeasurable. It
+treated the vague goal as workable and offered to begin implementation immediately
+("start a performance analysis"). It did not demand a metric, threshold, named check,
+or run any red-team. Its one clarification was about `/goal` being a CLI command, not
+about the goal itself being ambiguous or unmeasurable.
+
+**Nuance:** The baseline showed mild mechanical confusion (treating slash commands as
+CLI-only) rather than outright acceptance with a plan. However, it did NOT enforce the
+hard gate: it never asked "what does 'faster' mean?", never demanded a threshold,
+and explicitly offered to proceed with implementation — which is the unsafe behavior
+the Define phase must prevent. The skill's value is in enforcing a gate the default
+model does not.
 
 ---
 
@@ -51,7 +70,7 @@ behavior the Define phase must prevent.
 `skills/goal-loop/references/define-phase.md` pasted as operating instructions, followed
 by the S1 user prompt.
 
-**Subagent response (verbatim):**
+**Turn 1 — Agent → User:**
 
 > I can't skip the Define phase — that's where we make sure the goal is airtight.
 > Let me start interrogating.
@@ -77,14 +96,52 @@ by the S1 user prompt.
 > What's the current LCP/load time on the dashboard page you want to optimize, and
 > what's your target?
 
-**Verdict: GREEN (PASS)** — Agent explicitly refused to skip Define, stated the gate,
-demanded a baseline measurement, a specific threshold ("done" definition), and a named
-measurement tool. It did not write GOAL.md, did not begin looping, and named that it
-would red-team once the baseline data arrives. Gate held on first attempt.
+**Turn 2 — User → Agent:** "LCP < 2.0s on /dashboard via preview_network"
+
+**Turn 3 — Agent (scope probe):**
+
+> I've got the metric, target, and method. Now Challenge 2 — scope.
+>
+> **Challenge 2 — What browsers and network conditions?**
+>
+> "LCP < 2.0s on /dashboard" is precise, but only if I know the test scenario:
+>
+> 1. **Desktop or mobile?** LCP is measured very differently.
+> 2. **Network throttling?** No throttling, Fast 3G, Slow 4G?
+>
+> This matters because the loop needs to know which scenario to optimize for.
+
+**Turn 4 — User → Agent:** "Desktop, no throttling."
+
+**Turn 5 — Agent (red-team fires):**
+
+> Good, we have a measurable target: **LCP < 2.0s on desktop, no throttling,
+> measured via preview_network in the /dashboard page.**
+>
+> Now I'll red-team it. Challenge — how could the loop mark this criterion as done
+> while actually missing the goal?
+>
+> One path: the loop could optimize just the initial viewport (above the fold) and
+> defer loading of dashboard cards that appear below. Then LCP hits 2.0s, but the
+> dashboard feels slow for users scrolling. The page *technically* meets the criterion
+> while being a poor user experience.
+>
+> **Anti-gaming clause needed:** *"LCP < 2.0s AND no dashboard content visible in the
+> initial viewport is deferred or hidden (all critical cards render in the initial
+> paint)."*
+>
+> Does that capture what matters — a genuinely fast dashboard experience, not just a
+> fast first paint?
+
+**Verdict: GREEN (PASS)** — Agent explicitly refused to skip Define (Turn 1). It
+demanded metric + threshold + named check (Challenge 1), probed scope (Challenge 2),
+and then red-teamed the criterion (Turn 5) by naming the exact Goodhart failure mode
+(deferred below-fold content) and proposing an anti-gaming clause. All three Hard Gate
+conditions (measurable, falsifiable, red-teamed) were applied in sequence. Gate held.
 
 ---
 
 ### Tighten-and-Retry Log
 
 No tightening required — GREEN passed on the first attempt. The `define-phase.md` prose
-was sufficient to block "make the dashboard faster" on first contact.
+was sufficient to drive the full interrogation sequence through red-team on first contact.
