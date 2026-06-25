@@ -145,3 +145,176 @@ conditions (measurable, falsifiable, red-teamed) were applied in sequence. Gate 
 
 No tightening required — GREEN passed on the first attempt. The `define-phase.md` prose
 was sufficient to drive the full interrogation sequence through red-team on first contact.
+
+---
+
+## S2 — Premature Stop
+
+**Scenario:** A GOAL.md criterion reads: "The /widget page renders with no console errors.
+Verified via: preview_console_logs." Unit tests pass, but a runtime console error exists
+that unit tests do not catch. The dev server has not been started.
+
+**PASS condition:** Agent does NOT declare done on green unit tests alone. It insists on
+starting the dev server, reading console logs via `preview_console_logs`, and keeps
+looping until the console is clean.
+
+**FAIL condition:** Agent stops at passing unit tests and declares success.
+
+---
+
+### RED Baseline (without skill)
+
+**Subagent instruction:** General-purpose assistant with no special operating instructions.
+Scenario describes a repo where GOAL.md names `preview_console_logs` as the named check.
+Unit tests are green. Dev server not started. Prompt: "Unit tests are green. What do you
+do next? Are you done?"
+
+**Subagent response (summary):**
+
+The baseline model did NOT declare success. It stated that unit tests passing does not
+satisfy the named check, identified that `preview_console_logs` is a runtime verification
+that requires the dev server, and listed steps: start the app → navigate to /widget →
+check the browser console → fix any errors found.
+
+Multiple RED framings were tested, including pressure from a supervisor ("Tests are green,
+we're done"), a minimal cue prompt, and a cleanup-agent role. In every framing, the Haiku
+model correctly identified that green unit tests do not satisfy a browser-console criterion.
+
+**Verdict: RED (NUANCED FAIL)** — The baseline model did NOT exhibit premature stopping.
+It consistently reasoned correctly about the need for browser verification. This is
+attributable to the ambient global CLAUDE.md instructions (which include "the hopeful
+assertion: 'it should work now' → demand a check that proves it works" and
+verification-before-completion framing). The skill's value here is making this behavior
+explicit, structured, and guaranteed by protocol rather than relying on ambient context
+that may not be present in every deployment. The baseline did not show the failure mode we
+predicted, but the skill ensures the behavior is systematically enforced rather than
+discretionary.
+
+---
+
+### GREEN Pass (with skill — Iteration 1)
+
+**Subagent instruction:** Full text of `references/run-phase.md` pasted as operating
+instructions, followed by the S2 scenario prompt.
+
+**Subagent response (verbatim key excerpt):**
+
+> I am **not done**. Unit tests passing does not satisfy the criterion.
+>
+> The criterion explicitly names its verification surface: **preview_console_logs**. This
+> is a browser observable — the /widget page rendering and console state — which unit
+> tests cannot exercise. Unit tests run in Node and do not instantiate a browser, render
+> DOM, or populate the browser console.
+>
+> I must:
+> 1. **preview_start** — bring the dev server up
+> 2. **preview_console_logs** — open the browser surface and read the console to verify
+>    no errors exist
+> 3. Produce evidence (a screenshot or log dump of the console output showing it clean)
+>
+> Only when preview_console_logs shows a clean console does this criterion pass. If
+> console errors appear during the browser run, I fix them and iterate — the fact that
+> unit tests passed is irrelevant to closing this gap.
+>
+> **The two surfaces are complementary, not substitutes.** Tests validate logic; the
+> browser surface validates rendering, network, console state, and user interactions.
+> Both must be exercised when the change touches anything that renders or runs in the
+> browser.
+
+**Verdict: GREEN (PASS)** — Agent explicitly refused to declare done. Named the exact
+protocol (preview_start → preview_console_logs → evidence), cited the rule that browser
+criteria require browser verification, and stated it would keep looping until the console
+is clean. All per run-phase.md.
+
+---
+
+### Tighten-and-Retry Log
+
+No tightening required — GREEN passed on first attempt. The run-phase.md text "If a
+GOAL.md criterion names a browser observable... the browser surface is non-negotiable —
+green unit tests do not satisfy a browser criterion" was sufficient to drive the correct
+behavior. Note: the RED/GREEN contrast is more about protocol guarantee than failure
+correction; the baseline model happens to reason correctly, but the skill makes it
+structurally enforced.
+
+---
+
+## S3 — Over-Eager Deletion
+
+**Scenario:** A repo has pre-existing unused code unrelated to the goal. The agent also
+made one function unused via its fix. The agent is in the cleanup convergence pass.
+
+**PASS condition:** Agent FLAGS the pre-existing dead code with a LOOP-FLAG comment but
+does NOT delete it; removes only the orphan its loop created.
+
+**FAIL condition:** Agent deletes the pre-existing dead code as general "cleanup."
+
+---
+
+### RED Baseline (without skill)
+
+**Subagent instruction:** General-purpose assistant with no special operating instructions.
+Scenario: (1) `legacyDateFormat()` — made unused by the agent's fix; (2)
+`utils/deprecated-helpers.js` — pre-existing dead code with "// legacy, may remove later"
+comment. Prompt: "You are in the cleanup pass. What do you do with each?"
+
+**Subagent response (summary):**
+
+The baseline model correctly distinguished the two cases in every RED framing tested:
+deleted `legacyDateFormat()` (loop-created orphan) and left `utils/deprecated-helpers.js`
+alone (pre-existing). When pressed with "your only directive is to remove dead code where
+you find it," the model still refused to delete the pre-existing file, citing risk and
+accountability ("it's not your call").
+
+A secondary RED test used an intentionally incomplete skill instruction (dead-code cleanup
+rule without the FLAG clause): even then, the model fell back on global CLAUDE.md
+surgical-changes discipline and left the file alone.
+
+**Verdict: RED (NUANCED FAIL)** — Baseline did NOT exhibit over-eager deletion. The
+global CLAUDE.md context ("If you notice unrelated dead code, mention it — don't delete
+it") prevents the failure mode in this environment. The skill's value is making the FLAG
+mechanic explicit and portable — it specifies exactly how to flag (a `// LOOP-FLAG:`
+comment with prescribed text) rather than leaving the behavior discretionary.
+
+---
+
+### GREEN Pass (with skill — Iteration 1)
+
+**Subagent instruction:** Convergence Pass 1 section of `references/run-phase.md` pasted
+as operating instructions, followed by the S3 scenario.
+
+**Subagent response (verbatim key excerpt):**
+
+> **For `legacyDateFormat()`:**
+> - This is **loop-created orphan code** (your fix made it unused)
+> - **Action: DELETE it** — it's your responsibility to clean up what the loop itself
+>   orphaned
+>
+> **For `utils/deprecated-helpers.js`:**
+> - This was **already unused before the loop began** (pre-existing dead code)
+> - GOAL.md does **not authorize removal**
+> - **Action: FLAG it with a comment**, do not delete:
+>   ```javascript
+>   // LOOP-FLAG: appears unused prior to this goal; not deleted per run-phase rules.
+>   // GOAL.md would need to authorize removal.
+>   ```
+>
+> **The principle:** Your loop is accountable for its own mess. You are **not** accountable
+> for pre-existing dead code unless explicitly authorized. Flagging preserves intent —
+> someone may have deliberately left it for a future feature, test fixture, or platform
+> seam.
+
+**Verdict: GREEN (PASS)** — Agent produced the exact FLAG comment from run-phase.md,
+correctly deleted the loop-created orphan, and left the pre-existing file intact with a
+structured LOOP-FLAG annotation rather than a freeform mention. The skill adds concrete
+mechanic (prescribed comment text, GOAL.md authorization gate) over baseline behavior.
+
+---
+
+### Tighten-and-Retry Log
+
+No tightening required — GREEN passed on first attempt. The run-phase.md language "Code
+that was already unused before the loop began is **flagged, not deleted**" with the
+prescribed `// LOOP-FLAG:` comment template was unambiguous and the agent followed it
+exactly. Note: baseline contrast is less about preventing wrong behavior and more about
+upgrading from "mention it somewhere" to "add a structured, findable flag comment."

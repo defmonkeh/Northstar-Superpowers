@@ -13,5 +13,11 @@ Follow `references/define-phase.md`. Interrogate one challenge at a time. Do NOT
 GOAL.md (from `assets/GOAL.template.md`) or enter Run until every success criterion is
 measurable, falsifiable, and red-teamed. There is no override.
 
-## Phase 2 — Run
-<added in Task 3>
+## Phase 2 — Run (quality-convergence loop)
+Follow `references/run-phase.md`. Each iteration: run the full verification sweep
+(static/test AND browser/dev via preview_*), and stop ONLY when every GOAL.md criterion
+verifiably passes AND no surface reports an issue. Before declaring done, run the
+convergence passes: dead-code cleanup (orphans the loop created; flag pre-existing),
+simplify/reuse (/simplify + /code-review), append LOOP-LOG, efficient re-verification.
+Reuse existing skills (TDD, systematic-debugging, verification-before-completion) —
+do not reimplement them. No iteration or budget cap.
