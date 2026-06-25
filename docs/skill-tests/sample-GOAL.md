@@ -14,8 +14,9 @@ with no redirect chain and no server-side error masquerading as a 200.
 
 - [ ] The response body is **exactly** the string `OK` (plain text,
   strict equality — not substring, not `OK plus extra`) —
-  verified by: `preview_snapshot` on `http://localhost:3000/health`;
-  assert `document.body.innerText.trim() === "OK"`.
+  verified by: `preview_network` asserting raw response payload equals
+  the exact byte sequence `OK` (no trailing newline, no whitespace);
+  `preview_snapshot` as secondary visual confirmation only.
 
 - [ ] ESLint reports zero errors or warnings —
   verified by: `npx eslint . --max-warnings 0`; command exits with

@@ -5,6 +5,7 @@
 - Attempted:
   - Full verification sweep of all GOAL.md criteria before any code change.
   - Surfaces checked: Node startup (curl), ESLint, preview_start, preview_network, preview_snapshot.
+  - (Console logs not yet checked — first runtime load deferred to post-fix in Iteration 2.)
 
 - Verified:
   - ESLint: PASS (exit 0, zero warnings).
