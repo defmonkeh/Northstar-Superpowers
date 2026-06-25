@@ -4,12 +4,6 @@ Forked from [obra/superpowers](https://github.com/obra/superpowers) (MIT).
 
 Northstar Superpowers extends the upstream skills library with `goal-loop`: define an airtight goal, then loop autonomously until it's met and nothing is provably broken. You specify what "done" means — a passing test suite, a green CI run, a verified screenshot — and the agent keeps iterating until it can prove the goal is satisfied, then stops.
 
-## We're Hiring!
-
-We're hiring someone to help out full time with Superpowers community and code work. 
-You can read about the job at https://primeradiant.com/jobs/superpowers-community-engineer/
-If this sounds like someone you know, definitely send them our way.
-
 ## Quickstart
 
 Give your agent Superpowers: [Claude Code](#claude-code), [Antigravity](#antigravity), [Codex App](#codex-app), [Codex CLI](#codex-cli), [Cursor](#cursor), [Factory Droid](#factory-droid), [Gemini CLI](#gemini-cli), [GitHub Copilot CLI](#github-copilot-cli), [Kimi Code](#kimi-code), [OpenCode](#opencode), [Pi](#pi).
@@ -36,9 +30,27 @@ Installation differs by harness. If you use more than one, install Superpowers s
 
 ### Claude Code
 
-Superpowers is available via the [official Claude plugin marketplace](https://claude.com/plugins/superpowers)
+#### This Fork (northstar-superpowers)
 
-#### Official Marketplace
+Install this fork as a Claude Code plugin by registering its marketplace and enabling the plugin:
+
+- Register the marketplace:
+
+  ```bash
+  /plugin marketplace add defmonkeh/northstar-superpowers
+  ```
+
+- Install the plugin:
+
+  ```bash
+  /plugin install northstar-superpowers@northstar-superpowers
+  ```
+
+Once installed, the `northstar-superpowers` plugin is active for your Claude Code sessions. The `goal-loop` skill (`/goal` + `/loop`) is available alongside all upstream Superpowers skills.
+
+#### Official Upstream Marketplace
+
+Superpowers is also available via the [official Claude plugin marketplace](https://claude.com/plugins/superpowers)
 
 - Install the plugin from Anthropic's official marketplace:
 
@@ -217,6 +229,37 @@ The Pi package loads the Superpowers skills and a small extension that injects t
 7. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, presents options (merge/PR/keep/discard), cleans up worktree.
 
 **The agent checks for relevant skills before any task.** Mandatory workflows, not suggestions.
+
+## Goal-Loop (Northstar Addition)
+
+The `goal-loop` skill adds two commands that together give the agent a hard, self-verifiable target and keep it iterating until the target is met:
+
+### `/goal` — Define an airtight goal
+
+Use `/goal` before starting any significant task. The agent interrogates you adversarially until the goal is specific enough to be proven done or not done — no "make it better," only falsifiable criteria (passing tests, green CI, verified screenshot, etc.). The agreed goal is written to `GOAL.md` in the repo root.
+
+```
+/goal
+```
+
+The agent will not proceed until the goal definition can be answered with a binary pass/fail.
+
+### `/loop` — Autonomous convergence
+
+Use `/loop` after `/goal` (or at any point when `GOAL.md` exists). The agent enters a convergence loop: implement → verify → check goal → repeat. Each iteration is logged to `LOOP-LOG.md`. The loop stops only when the goal criteria are provably satisfied and nothing it touched is provably broken.
+
+```
+/loop
+```
+
+The loop will not self-declare success on confidence alone — it requires observable evidence (test output, CI result, rendered screenshot, etc.) that matches the criteria in `GOAL.md`.
+
+**Typical flow:**
+
+```
+/goal          # → GOAL.md written with hard exit criteria
+/loop          # → agent iterates until GOAL.md criteria pass; LOOP-LOG.md updated each pass
+```
 
 ## What's Inside
 
