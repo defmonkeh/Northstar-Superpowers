@@ -75,6 +75,13 @@ criterion is **measurable, falsifiable, and red-teamed**.
 
 ## 6. Run phase — quality-convergence loop
 
+**Workspace isolation (precondition, before iteration 1):** The loop commits repeatedly
+and autonomously, so it must run on an isolated feature branch or git worktree — never on
+`main`/`master` without explicit user consent. If the current branch is `main`/`master`,
+the loop creates/switches to an isolated branch (via `superpowers:using-git-worktrees`)
+or, only with the user's unambiguous consent, proceeds on `main`. Implicit acceptance is
+not consent.
+
 Each iteration runs a **full verification sweep** and stops only when all surfaces are
 clean.
 

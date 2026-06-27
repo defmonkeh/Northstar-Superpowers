@@ -7,6 +7,26 @@ says it ends — not when the work feels done.
 
 ---
 
+## Workspace Isolation (PRECONDITION — before iteration 1)
+
+The loop commits repeatedly and autonomously. Before the first iteration begins, confirm
+that work is on an **isolated feature branch or git worktree** — never on `main` or
+`master`.
+
+**If the current branch is `main` or `master`:**
+
+1. **Preferred path:** Use `superpowers:using-git-worktrees` to create a worktree or
+   switch to an isolated branch. Do not reimplement worktree or branch logic here — that
+   skill owns it.
+2. **Consent path:** If the user has explicitly stated (in the current session) that they
+   want the loop to run on `main`/`master`, you may proceed. Implicit acceptance is not
+   consent — proceed only on an unambiguous statement.
+
+Do **not** start the iteration loop while on `main`/`master` without one of the two
+conditions above being satisfied.
+
+---
+
 ## Verification Surfaces
 
 Two surfaces are always in scope. Run both on every iteration. A surface is **skipped**

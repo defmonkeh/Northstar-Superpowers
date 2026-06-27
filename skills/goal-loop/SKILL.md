@@ -14,7 +14,9 @@ GOAL.md (from `assets/GOAL.template.md`) or enter Run until every success criter
 measurable, falsifiable, and red-teamed. There is no override.
 
 ## Phase 2 — Run (quality-convergence loop)
-Follow `references/run-phase.md`. Each iteration: run the full verification sweep
+Follow `references/run-phase.md`. PRECONDITION before iteration 1: work must be on an
+isolated feature branch or worktree — never on main/master without explicit user consent
+(use `superpowers:using-git-worktrees`). Each iteration: run the full verification sweep
 (static/test AND browser/dev via preview_*), and stop ONLY when every GOAL.md criterion
 verifiably passes AND no surface reports an issue. Before declaring done, run the
 convergence passes: dead-code cleanup (orphans the loop created; flag pre-existing),
