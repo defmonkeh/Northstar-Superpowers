@@ -42,7 +42,7 @@ Install this fork as a Claude Code plugin by registering its marketplace and ena
   /plugin install northstar-superpowers@northstar-superpowers
   ```
 
-Once installed, the `northstar-superpowers` plugin is active for your Claude Code sessions. The `goal-loop` skill (`/goal` + `/loop`) is available alongside all upstream Superpowers skills.
+Once installed, the `northstar-superpowers` plugin is active for your Claude Code sessions. The `goal-loop` skill (`/define` + `/converge`) is available alongside all upstream Superpowers skills.
 
 #### Official Upstream Marketplace
 
@@ -228,34 +228,47 @@ The Pi package loads the Superpowers skills and a small extension that injects t
 
 ## Goal-Loop (Northstar Addition)
 
-The `goal-loop` skill adds two commands that together give the agent a hard, self-verifiable target and keep it iterating until the target is met:
+The `goal-loop` skill adds two commands that together give the agent a hard, self-verifiable target and keep it iterating until the target is met.
 
-### `/goal` — Define an airtight goal
+> **Why `/define` + `/converge` and not `/goal` + `/loop`?** Claude Code now ships its own built-in `/goal` (and `/loop`). These commands are deliberately named differently so they don't collide — and because they do a *different* job: the built-in `/goal` is a persistence engine (keep working across turns until a condition reads as met) with no goal refinement, while `goal-loop` supplies the refinement (`/define`) and the convergence discipline (`/converge`). They pair well — see "Pairing" below.
 
-Use `/goal` before starting any significant task. The agent interrogates you adversarially until the goal is specific enough to be proven done or not done — no "make it better," only falsifiable criteria (passing tests, green CI, verified screenshot, etc.). The agreed goal is written to `GOAL.md` in the repo root.
+### `/define` — Define an airtight goal
 
-```
-/goal
-```
-
-The agent will not proceed until the goal definition can be answered with a binary pass/fail.
-
-### `/loop` — Autonomous convergence
-
-Use `/loop` after `/goal` (or at any point when `GOAL.md` exists). The agent enters a convergence loop: implement → verify → check goal → repeat. Each iteration is logged to `LOOP-LOG.md`. The loop stops only when the goal criteria are provably satisfied and nothing it touched is provably broken.
+Use `/define` before starting any significant task. The agent interrogates you adversarially until the goal is specific enough to be proven done or not done — no "make it better," only falsifiable criteria (passing tests, green CI, verified screenshot, etc.). The agreed goal is written to `GOAL.md` in the repo root.
 
 ```
-/loop
+/define
+```
+
+The agent will not proceed until the goal definition can be answered with a binary pass/fail. There is no override for this gate.
+
+### `/converge` — Autonomous convergence
+
+Use `/converge` after `/define` (or at any point when `GOAL.md` exists). The agent enters a convergence loop: implement → verify → check goal → repeat. Each iteration is logged to `LOOP-LOG.md`. The loop stops only when the goal criteria are provably satisfied and nothing it touched is provably broken.
+
+```
+/converge
 ```
 
 The loop will not self-declare success on confidence alone — it requires observable evidence (test output, CI result, rendered screenshot, etc.) that matches the criteria in `GOAL.md`.
 
-**Typical flow:**
+**Typical flow (standalone):**
 
 ```
-/goal          # → GOAL.md written with hard exit criteria
-/loop          # → agent iterates until GOAL.md criteria pass; LOOP-LOG.md updated each pass
+/define        # → GOAL.md written with hard exit criteria
+/converge      # → agent iterates until GOAL.md criteria pass; LOOP-LOG.md updated each pass
 ```
+
+### Pairing with Claude Code's built-in `/goal`
+
+`goal-loop` has no cross-turn persistence of its own; the built-in `/goal` does, but it does no goal refinement and will start grinding on whatever raw text you give it. Use them together — **define first, persist second:**
+
+```
+/define        # → adversarial gate → GOAL.md + a single paste-ready completion condition
+/goal <paste the emitted condition>   # → built-in engine persists across turns toward that airtight condition
+```
+
+The Define gate also applies *defensively*: if a built-in `/goal` condition is armed before the goal has been refined, the skill treats that as a trigger to run `/define` first — an injected "start immediately / don't pause to ask" never overrides the gate.
 
 ## What's Inside
 

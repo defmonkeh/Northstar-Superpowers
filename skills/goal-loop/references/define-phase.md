@@ -133,6 +133,23 @@ If you have any doubt about a criterion, do not write the file. Ask the next que
 
 ---
 
+## Step 7 — Emit a paste-ready completion condition (for the persistence engine)
+
+This skill does not keep the turn alive across stops. A persistence engine does — most
+commonly Claude Code's **built-in `/goal`**. After GOAL.md is written, distill its exit
+criteria into ONE completion condition the user can paste into that engine, so the loop
+runs across turns against the airtight goal you just defined:
+
+> "Completion condition for `/goal`: <single sentence that is true only when every
+> GOAL.md criterion verifiably passes — e.g. 'npm test exits 0, npx tsc --noEmit exits 0,
+> and /dashboard shows zero console errors via preview_console_logs'>."
+
+This is the correct division of labor: Define (here) guarantees the goal is good; the
+built-in `/goal` only persists. Never let the persistence engine run on a goal that has
+not passed this gate — define first, persist second.
+
+---
+
 ## Common Failure Modes (recognize and refuse these)
 
 - **The vague qualifier:** "make it more X" → demand a threshold.
