@@ -5,8 +5,8 @@
   "author": {
     "name": "Kyle Nadler"
   },
-  "homepage": "https://github.com/defmonkeh/northstar-superpowers",
-  "repository": "https://github.com/defmonkeh/northstar-superpowers",
+  "homepage": "https://github.com/defmonkeh/Northstar-Superpowers",
+  "repository": "https://github.com/defmonkeh/Northstar-Superpowers",
   "license": "MIT",
   "keywords": ["skills", "goal", "autonomous-loop", "tdd", "verification", "workflows"]
 }
